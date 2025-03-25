@@ -1,4 +1,3 @@
-```markdown
 # 🃏 Coup Game
 
 ![Flask Version](https://img.shields.io/badge/Flask-3.1.0-blue) ![Python Version](https://img.shields.io/badge/Python-3.x-blue)
@@ -145,4 +144,3 @@ Quer contribuir para o desenvolvimento do **Coup Game**? Siga os passos abaixo:
 <div align="center">
   <p>Divirta-se desenvolvendo e jogando! 🎉🃏</p>
 </div>
-```
