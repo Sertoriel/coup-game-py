@@ -1,0 +1,38 @@
+<!-- templates/exchange.html -->
+{% extends "base.html" %} {% block content %}
+<h1 class="text-3xl font-bold mb-4">Troca de Cartas do Embaixador</h1>
+<p>
+  <strong>{{ player.name }}</strong>, escolha exatamente {{ keep }} carta(s)
+  para manter da lista abaixo:
+</p>
+<form method="POST" class="bg-white p-4 rounded shadow-md">
+  <ul>
+    {% for card in pool %}
+    <li>
+      <label>
+        <input type="checkbox" name="selected" value="{{ loop.index0 }}" />
+        Índice {{ loop.index0 }} - {{ card.name }} {% if card.revealed
+        %}(revelada){% endif %}
+      </label>
+    </li>
+    {% endfor %}
+  </ul>
+  <button type="submit" class="bg-blue-500 text-white p-2 rounded mt-4">
+    Confirmar Troca
+  </button>
+</form>
+<script>
+  // Limita a seleção para exatamente o número de cartas necessárias
+  const checkboxes = document.querySelectorAll('input[name="selected"]');
+  const keep = {{ keep }};
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const checked = document.querySelectorAll('input[name="selected"]:checked');
+      if (checked.length > keep) {
+        cb.checked = false;
+        alert(`Você deve selecionar exatamente ${keep} carta(s).`);
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+<!-- templates/index.html -->
+{% extends "base.html" %} {% block content %}
+<h1 class="text-3xl font-bold mb-4">Coup - Jogo de Cartas</h1>
+
+<!-- Exibe o estado dos jogadores -->
+<div class="mb-4">
+  <h2 class="text-xl font-semibold">Estado dos Jogadores:</h2>
+  <ul>
+    {% for player in game.players %}
+    <li class="mb-1 p-2 border rounded bg-white">
+      <strong>{{ player.name }}</strong>
+      {% if not player.alive %}
+      <span class="text-red-500">(Eliminado)</span>
+      {% endif %}
+      <br />
+      Moedas: {{ player.coins }}<br />
+      Cartas:
+      <ul>
+        {% for card in player.cards %}
+        <li>{{ card }}</li>
+        {% endfor %}
+      </ul>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Mostra o jogador atual -->
+<div class="mb-4">
+  <h2 class="text-xl font-semibold">
+    Vez de: {{ game.get_current_player().name }}
+  </h2>
+</div>
+
+<!-- Formulário para executar uma ação -->
+<form method="POST" class="bg-white p-4 rounded shadow-md">
+  <label for="action" class="block font-medium">Ação:</label>
+  <select name="action" id="action" class="border p-1 w-full mb-2">
+    <option value="renda">Renda (ganha 1 moeda)</option>
+    <option value="ajuda_externa">Ajuda Externa (ganha 2 moedas)</option>
+    <option value="golpe_estado">Golpe de Estado (gasta 7 moedas)</option>
+    <option value="duque">Duque (ganha 3 moedas)</option>
+    <option value="assassino">
+      Assassino (paga 3 moedas para eliminar carta)
+    </option>
+    <option value="capitao">Capitão (rouba 2 moedas)</option>
+    <option value="embaixador">Embaixador (troca cartas)</option>
+    <option value="condessa">Condessa (bloqueia assassinato)</option>
+  </select>
+
+  <!-- Campo opcional para selecionar um jogador alvo -->
+  <label for="target" class="block font-medium">Jogador Alvo (índice):</label>
+  <input
+    type="number"
+    name="target"
+    id="target"
+    class="border p-1 w-full mb-2"
+    placeholder="0 para Alice, 1 para Bob, etc."
+  />
+
+  <!-- Campo opcional para selecionar o índice da carta a ser descartada do alvo -->
+  <label for="card_index" class="block font-medium"
+    >Índice da Carta do Alvo:</label
+  >
+  <input
+    type="number"
+    name="card_index"
+    id="card_index"
+    class="border p-1 w-full mb-2"
+    placeholder="0 ou 1"
+  />
+
+  <button type="submit" class="bg-blue-500 text-white p-2 rounded">
+    Executar Ação
+  </button>
+</form>
+
+{% if game.is_game_over() %}
+<div class="mt-4 p-4 bg-green-200 rounded">
+  <h2 class="text-2xl font-bold">Fim do Jogo!</h2>
+  <p>
+    Vencedor: {{ game.get_winner().name if game.get_winner() else "Nenhum" }}
+  </p>
+</div>
+{% endif %} {% endblock %}

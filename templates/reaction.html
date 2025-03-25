@@ -1,0 +1,70 @@
+<!-- templates/reaction.html -->
+{% extends "base.html" %} {% block content %}
+<h1 class="text-3xl font-bold mb-4">Reaja à Ação Pendente</h1>
+<p>
+  <strong>Ação:</strong> {{ pending.action }} realizada por {{
+  pending.acting_player.name }}
+</p>
+{% if pending.target %}
+<p><strong>Alvo:</strong> {{ pending.target.name }}</p>
+{% endif %}
+<p>Você tem 10 segundos para reagir.</p>
+<form method="POST" id="reactionForm">
+  <label for="reacting_player" class="block font-medium"
+    >Quem está reagindo (índice do jogador):</label
+  >
+  <select
+    name="reacting_player"
+    id="reacting_player"
+    class="border p-1 w-full mb-2"
+  >
+    {% for player in players %} {% if player.name != pending.acting_player.name
+    %}
+    <option value="{{ loop.index0 }}">{{ player.name }}</option>
+    {% endif %} {% endfor %}
+  </select>
+  <label for="reaction" class="block font-medium">Escolha sua reação:</label>
+  <select name="reaction" id="reaction" class="border p-1 w-full mb-2">
+    <option value="pass">Passar</option>
+    <option value="challenge">Desafiar</option>
+    <option value="block">Bloquear</option>
+  </select>
+  <div id="blockOptions" style="display: none">
+    <label for="card_used" class="block font-medium"
+      >Carta para bloqueio:</label
+    >
+    <input
+      type="text"
+      name="card_used"
+      id="card_used"
+      class="border p-1 w-full mb-2"
+      placeholder="Ex: Duque ou Condessa"
+    />
+  </div>
+  <button type="submit" class="bg-blue-500 text-white p-2 rounded">
+    Enviar Reação
+  </button>
+</form>
+<script>
+  // Exibe campo adicional se a reação for "block"
+  document.getElementById("reaction").addEventListener("change", function () {
+    if (this.value === "block") {
+      document.getElementById("blockOptions").style.display = "block";
+    } else {
+      document.getElementById("blockOptions").style.display = "none";
+    }
+  });
+  // Timer de 10 segundos: se não houver resposta, submete com "pass"
+  setTimeout(function () {
+    if (!document.getElementById("reactionForm").dataset.submitted) {
+      document.getElementById("reaction").value = "pass";
+      document.getElementById("reactionForm").submit();
+    }
+  }, 10000);
+  document
+    .getElementById("reactionForm")
+    .addEventListener("submit", function () {
+      this.dataset.submitted = "true";
+    });
+</script>
+{% endblock %}
