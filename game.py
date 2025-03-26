@@ -1,7 +1,5 @@
-# game.py
 import random
 
-# Representa uma carta de influência
 class Card:
     def __init__(self, name):
         self.name = name
@@ -11,7 +9,6 @@ class Card:
         status = " (revelada)" if self.revealed else ""
         return f"{self.name}{status}"
 
-# Representa um jogador
 class Player:
     def __init__(self, name):
         self.name = name
@@ -30,7 +27,6 @@ class Player:
     def __repr__(self):
         return f"{self.name} | Moedas: {self.coins} | Cartas: {self.cards}"
 
-# Classe principal do jogo
 class Game:
     def __init__(self, player_names):
         self.characters = ["Duque", "Assassino", "Capitão", "Embaixador", "Condessa"]
@@ -41,9 +37,9 @@ class Game:
             player.cards.append(self.deck.pop())
             player.cards.append(self.deck.pop())
         self.current_turn = 0
-        self.pending_action = None  # Ação pendente para bloqueio/desafio
-        self.pending_reveal = None  # Estado pendente para revelar carta após desafio
-        self.pending_exchange = None  # Estado pendente para troca do embaixador
+        self.pending_action = None
+        self.pending_reveal = None
+        self.pending_exchange = None
 
     def get_current_player(self):
         return self.players[self.current_turn]
@@ -65,7 +61,7 @@ class Game:
         player.coins += 2
         return f"{player.name} ganhou 2 moedas (pode ser bloqueada pelo Duque)."
 
-    def action_golpe_estado(self, player, target: Player, card_index: int):
+    def action_golpe_estado(self, player, target, card_index):
         if player.coins < 7:
             raise Exception("Moedas insuficientes para golpe de estado.")
         player.coins -= 7
@@ -76,22 +72,21 @@ class Game:
         player.coins += 3
         return f"{player.name} usou Duque e ganhou 3 moedas."
 
-    def action_assassino(self, player, target: Player, card_index: int):
+    def action_assassino(self, player, target, card_index):
         if player.coins < 3:
             raise Exception("Moedas insuficientes para Assassinato.")
         player.coins -= 3
         target.lose_influence(card_index)
-        return f"{player.name} usou Assassino em {target.name}."
+        return (f"{player.name} usou Assassino em {target.name} e escolheu uma carta de influência "
+                f"para ser removida de forma cega.")
 
-    def action_capitao(self, player, target: Player):
+    def action_capitao(self, player, target):
         amount = min(2, target.coins)
         target.coins -= amount
         player.coins += amount
         return f"{player.name} roubou {amount} moedas de {target.name}."
 
     def action_embaixador(self, player):
-        # Em vez de trocar imediatamente, criamos uma troca pendente.
-        # O pool será composto pelas cartas atuais do jogador + 2 cartas extras.
         extra_cards = []
         for _ in range(2):
             if len(self.deck) > 0:
@@ -100,7 +95,7 @@ class Game:
         self.pending_exchange = {
             "player": player,
             "pool": pool,
-            "keep": len(player.cards)  # Quantidade de cartas que ele já possuía
+            "keep": len(player.cards)
         }
         return f"Ação pendente: {player.name}, escolha exatamente {len(player.cards)} carta(s) para manter."
 
@@ -115,8 +110,6 @@ class Game:
         alive = [p for p in self.players if p.alive]
         return alive[0] if len(alive) == 1 else None
 
-    # MÉTODOS PARA BLOQUEIO, DESAFIO E REVELAÇÃO (já implementados anteriormente)
-
     def init_pending_action(self, action, acting_player, target=None, card_index=None):
         self.pending_action = {
             "action": action,
@@ -126,7 +119,7 @@ class Game:
             "reaction": None,
             "reacting_player": None
         }
-        self.pending_reveal = None  # Garante que não haja estado pendente anterior
+        self.pending_reveal = None
 
     def player_has_card(self, player, card_name):
         for card in player.cards:
@@ -141,21 +134,17 @@ class Game:
         target = pa["target"]
         card_index = pa["card_index"]
 
-        # Define a carta necessária para a ação (para verificação de desafio)
         required_card = None
-        if action == "duque":
+        if action == "duque" or action == "ajuda_externa":
             required_card = "Duque"
         elif action == "assassino":
-            required_card = "Assassino"
+            required_card = "Condessa"
         elif action == "capitao":
-            required_card = "Capitão"
+            required_card = ["Capitão", "Embaixador"]
         elif action == "embaixador":
             required_card = "Embaixador"
-        elif action == "ajuda_externa":
-            required_card = "Duque"  # para bloquear Ajuda Externa
 
         if reaction_type == "pass":
-            # Sem reação: executa a ação normalmente
             if action == "duque":
                 return self.action_duque(acting_player)
             elif action == "assassino":
@@ -163,14 +152,21 @@ class Game:
             elif action == "capitao":
                 return self.action_capitao(acting_player, target)
             elif action == "embaixador":
-                # Ao usar o embaixador, redireciona para a troca pendente.
                 return self.action_embaixador(acting_player)
             elif action == "ajuda_externa":
                 return self.action_ajuda_externa(acting_player)
             else:
                 return "Ação não reconhecida."
         elif reaction_type == "challenge":
-            if required_card and self.player_has_card(acting_player, required_card):
+            if required_card:
+                if isinstance(required_card, list):
+                    has_required = any(self.player_has_card(acting_player, card) for card in required_card)
+                else:
+                    has_required = self.player_has_card(acting_player, required_card)
+            else:
+                has_required = False
+
+            if has_required:
                 self.pending_reveal = {
                     "player": reacting_player,
                     "message": f"Desafio falhou! {acting_player.name} possuía {required_card}. {reacting_player.name}, escolha uma carta para revelar."
@@ -185,11 +181,18 @@ class Game:
         elif reaction_type == "block":
             if not card_used:
                 return "Nenhuma carta foi informada para bloqueio."
-            if self.player_has_card(reacting_player, card_used):
+            valid_block = False
+            if isinstance(required_card, list):
+                if card_used in required_card and self.player_has_card(reacting_player, card_used):
+                    valid_block = True
+            else:
+                if card_used == required_card and self.player_has_card(reacting_player, card_used):
+                    valid_block = True
+            if valid_block:
                 return f"Ação bloqueada por {reacting_player.name} usando {card_used}."
             else:
                 reacting_player.lose_influence(0)
-                return f"Bloqueio falhou! {reacting_player.name} não possuía {card_used}. Bloqueio inválido."
+                return f"Bloqueio falhou! {reacting_player.name} não possuía {card_used} ou usou a carta errada. Bloqueio inválido."
         else:
             return "Reação inválida."
 
@@ -200,7 +203,7 @@ class Game:
         losing_player.lose_influence(int(card_index))
         msg = f"{losing_player.name} revelou uma carta e perdeu influência."
         self.pending_reveal = None
-        self.pending_action = None  # Limpa a ação pendente após resolução
+        self.pending_action = None
         return msg
 
     def resolve_pending_exchange(self, selected_indices):
@@ -218,9 +221,7 @@ class Game:
             raise Exception("Índices inválidos.")
         if any(idx < 0 or idx >= len(pool) for idx in selected_indices):
             raise Exception("Índice fora do intervalo do pool de cartas.")
-        # Define a nova mão do jogador com as cartas escolhidas
         new_hand = [pool[idx] for idx in selected_indices]
-        # As cartas não escolhidas retornam para o deck
         remaining_cards = [card for i, card in enumerate(pool) if i not in selected_indices]
         self.deck.extend(remaining_cards)
         random.shuffle(self.deck)

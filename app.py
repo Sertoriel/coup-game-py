@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, request, redirect, url_for, flash
 from game import Game, Player
 import traceback
@@ -17,8 +16,8 @@ def add_players():
             flash("Insira pelo menos um nome de jogador.", "danger")
             return redirect(url_for("add_players"))
         player_names = [name.strip() for name in players_str.split(",") if name.strip()]
-        if len(player_names) < 2:
-            flash("Adicione pelo menos dois jogadores.", "danger")
+        if len(player_names) < 4 or len(player_names) > 6:
+            flash("Número de jogadores deve ser entre 4 e 6.", "danger")
             return redirect(url_for("add_players"))
         game = Game(player_names)
         flash("Jogo iniciado com sucesso!", "success")
@@ -38,14 +37,19 @@ def index():
             target_index = request.form.get("target")
             card_index = request.form.get("card_index")
             result = ""
-            # Ações que podem ser contestadas/bloqueadas
+            if action == "assassino" and current_player.coins < 3:
+                flash("Você não tem moedas suficientes para executar Assassino.", "danger")
+                return redirect(url_for("index"))
+            if action == "golpe_estado" and current_player.coins < 7:
+                flash("Você não tem moedas suficientes para executar Golpe de Estado.", "danger")
+                return redirect(url_for("index"))
+            
             challengeable_actions = ["ajuda_externa", "duque", "assassino", "capitao", "embaixador"]
             if action in challengeable_actions:
                 target = game.players[int(target_index)] if target_index and target_index.strip() != "" else None
                 game.init_pending_action(action, current_player, target, int(card_index) if card_index and card_index.strip() != "" else None)
                 return redirect(url_for("reaction"))
             else:
-                # Ações não contestáveis
                 if action == "renda":
                     result = game.action_renda(current_player)
                 elif action == "golpe_estado":
@@ -76,23 +80,32 @@ def reaction():
     if game.pending_action is None:
         flash("Não há ação pendente.", "danger")
         return redirect(url_for("index"))
+    action = game.pending_action["action"]
+    required_card = None
+    if action == "duque" or action == "ajuda_externa":
+        required_card = "Duque"
+    elif action == "assassino":
+        required_card = "Condessa"
+    elif action == "capitao":
+        required_card = "Capitão ou Embaixador"
+    elif action == "embaixador":
+        required_card = "Embaixador"
+    
     if request.method == "POST":
         reaction_type = request.form.get("reaction")
         reacting_player_index = request.form.get("reacting_player")
         reacting_player = game.players[int(reacting_player_index)] if reacting_player_index else None
-        card_used = request.form.get("card_used")  # Apenas para bloqueio
+        card_used = request.form.get("card_used")
         result = game.resolve_pending_action(reaction_type, reacting_player, card_used)
         flash(result, "success")
-        # Se houver estado pendente de revelação, redireciona para /reveal
         if game.pending_reveal is not None:
             return redirect(url_for("reveal"))
-        # Se a ação foi embaixador, redireciona para a troca pendente
         if game.pending_exchange is not None:
             return redirect(url_for("exchange"))
         if not game.is_game_over():
             game.next_turn()
         return redirect(url_for("index"))
-    return render_template("reaction.html", pending=game.pending_action, players=game.players)
+    return render_template("reaction.html", pending=game.pending_action, players=game.players, required_card=required_card)
 
 @app.route("/reveal", methods=["GET", "POST"])
 def reveal():

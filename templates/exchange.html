@@ -1,28 +1,36 @@
-<!-- templates/exchange.html -->
 {% extends "base.html" %} {% block content %}
 <h1 class="text-3xl font-bold mb-4">Troca de Cartas do Embaixador</h1>
 <p>
   <strong>{{ player.name }}</strong>, escolha exatamente {{ keep }} carta(s)
   para manter da lista abaixo:
 </p>
-<form method="POST" class="bg-white p-4 rounded shadow-md">
-  <ul>
+<form method="POST" class="bg-white p-6 rounded shadow-md max-w-md mx-auto">
+  <ul class="space-y-2">
     {% for card in pool %}
     <li>
-      <label>
-        <input type="checkbox" name="selected" value="{{ loop.index0 }}" />
-        Índice {{ loop.index0 }} - {{ card.name }} {% if card.revealed
-        %}(revelada){% endif %}
+      <label class="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          name="selected"
+          value="{{ loop.index0 }}"
+          class="form-checkbox h-5 w-5 text-yellow-400"
+        />
+        <span
+          >Índice {{ loop.index0 }} - {{ card.name }} {% if card.revealed
+          %}(revelada){% endif %}</span
+        >
       </label>
     </li>
     {% endfor %}
   </ul>
-  <button type="submit" class="bg-blue-500 text-white p-2 rounded mt-4">
+  <button
+    type="submit"
+    class="bg-yellow-300 text-purple-700 px-4 py-2 rounded mt-4 hover:bg-yellow-400 transition"
+  >
     Confirmar Troca
   </button>
 </form>
 <script>
-  // Limita a seleção para exatamente o número de cartas necessárias
   const checkboxes = document.querySelectorAll('input[name="selected"]');
   const keep = {{ keep }};
   checkboxes.forEach(cb => {

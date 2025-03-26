@@ -1,33 +1,25 @@
-<!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Coup - Jogo de Cartas</title>
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind via CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <!-- Feather Icons via CDN (opcional, caso queira usar ícones) -->
+    <script src="https://unpkg.com/feather-icons"></script>
   </head>
-  <body class="bg-gray-100">
-    <div class="container mx-auto p-4">
-      <nav class="mb-4">
-        <a href="{{ url_for('index') }}" class="text-blue-500 mr-2">Home</a>
-        <a href="{{ url_for('add_players') }}" class="text-blue-500"
-          >Adicionar Jogadores</a
-        >
-      </nav>
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <div>
-        {% for category, message in messages %}
-        <div
-          class="mb-2 p-2 rounded text-white {% if category == 'success' %} bg-green-500 {% elif category == 'danger' %} bg-red-500 {% else %} bg-blue-500 {% endif %}"
-        >
-          {{ message }}
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %} {% endwith %} {% block content %}{% endblock %}
-    </div>
+  <body class="bg-gray-100 text-gray-800">
+    <header class="p-4 flex justify-between items-center bg-purple-700">
+      <h1 class="text-2xl font-bold text-yellow-300">Coup Game</h1>
+    </header>
+    <main class="container mx-auto p-4">{% block content %}{% endblock %}</main>
+    <!-- Inicialização dos ícones (se for usar data-feather="...") -->
+    <script>
+      feather.replace();
+    </script>
   </body>
 </html>

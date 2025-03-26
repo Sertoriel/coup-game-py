@@ -1,18 +1,27 @@
-<!-- templates/add_players.html -->
 {% extends "base.html" %} {% block content %}
 <h1 class="text-3xl font-bold mb-4">Adicionar Jogadores</h1>
-<form method="POST" class="bg-white p-4 rounded shadow-md">
-  <label for="players" class="block font-medium"
+<p class="mb-4">
+  Insira os nomes dos jogadores (mínimo 4, máximo 6). Exemplos: Camile, João,
+  Pedro, Arthur
+</p>
+<form
+  method="POST"
+  class="bg-white p-6 rounded shadow-md w-full max-w-md mx-auto"
+>
+  <label for="players" class="block font-medium mb-1"
     >Nomes dos Jogadores (separados por vírgula):</label
   >
   <input
     type="text"
     name="players"
     id="players"
-    class="border p-1 w-full mb-2"
-    placeholder="Alice, Bob, Carlos"
+    class="border p-2 w-full mb-4"
+    placeholder="Camile, João, Pedro, Arthur"
   />
-  <button type="submit" class="bg-blue-500 text-white p-2 rounded">
+  <button
+    type="submit"
+    class="bg-yellow-300 text-purple-700 px-4 py-2 rounded hover:bg-yellow-400 transition"
+  >
     Iniciar Jogo
   </button>
 </form>

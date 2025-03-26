@@ -1,4 +1,3 @@
-<!-- templates/reaction.html -->
 {% extends "base.html" %} {% block content %}
 <h1 class="text-3xl font-bold mb-4">Reaja à Ação Pendente</h1>
 <p>
@@ -8,59 +7,77 @@
 {% if pending.target %}
 <p><strong>Alvo:</strong> {{ pending.target.name }}</p>
 {% endif %}
-<p>Você tem 10 segundos para reagir.</p>
-<form method="POST" id="reactionForm">
-  <label for="reacting_player" class="block font-medium"
+<p>Você tem 30 segundos para reagir.</p>
+
+<!-- Dica para bloqueio baseada na ação pendente -->
+<div id="blockHint" class="mb-4 text-gray-600" style="display: none">
+  <em
+    >Dica: Para bloquear esta ação, use a carta
+    <strong>{{ required_card }}</strong>.</em
+  >
+</div>
+
+<form
+  method="POST"
+  id="reactionForm"
+  class="bg-white p-6 rounded shadow-md max-w-lg mx-auto"
+>
+  <label for="reacting_player" class="block font-medium mb-1"
     >Quem está reagindo (índice do jogador):</label
   >
   <select
     name="reacting_player"
     id="reacting_player"
-    class="border p-1 w-full mb-2"
+    class="border p-2 w-full mb-4"
   >
     {% for player in players %} {% if player.name != pending.acting_player.name
     %}
     <option value="{{ loop.index0 }}">{{ player.name }}</option>
     {% endif %} {% endfor %}
   </select>
-  <label for="reaction" class="block font-medium">Escolha sua reação:</label>
-  <select name="reaction" id="reaction" class="border p-1 w-full mb-2">
+  <label for="reaction" class="block font-medium mb-1"
+    >Escolha sua reação:</label
+  >
+  <select name="reaction" id="reaction" class="border p-2 w-full mb-4">
     <option value="pass">Passar</option>
     <option value="challenge">Desafiar</option>
     <option value="block">Bloquear</option>
   </select>
   <div id="blockOptions" style="display: none">
-    <label for="card_used" class="block font-medium"
+    <label for="card_used" class="block font-medium mb-1"
       >Carta para bloqueio:</label
     >
     <input
       type="text"
       name="card_used"
       id="card_used"
-      class="border p-1 w-full mb-2"
-      placeholder="Ex: Duque ou Condessa"
+      class="border p-2 w-full mb-4"
+      placeholder="Informe a carta (ex: {{ required_card }})"
     />
   </div>
-  <button type="submit" class="bg-blue-500 text-white p-2 rounded">
+  <button
+    type="submit"
+    class="bg-yellow-300 text-purple-700 px-4 py-2 rounded hover:bg-yellow-400 transition"
+  >
     Enviar Reação
   </button>
 </form>
 <script>
-  // Exibe campo adicional se a reação for "block"
   document.getElementById("reaction").addEventListener("change", function () {
     if (this.value === "block") {
       document.getElementById("blockOptions").style.display = "block";
+      document.getElementById("blockHint").style.display = "block";
     } else {
       document.getElementById("blockOptions").style.display = "none";
+      document.getElementById("blockHint").style.display = "none";
     }
   });
-  // Timer de 10 segundos: se não houver resposta, submete com "pass"
   setTimeout(function () {
     if (!document.getElementById("reactionForm").dataset.submitted) {
       document.getElementById("reaction").value = "pass";
       document.getElementById("reactionForm").submit();
     }
-  }, 10000);
+  }, 30000);
   document
     .getElementById("reactionForm")
     .addEventListener("submit", function () {

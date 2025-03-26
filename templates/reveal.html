@@ -1,16 +1,20 @@
-<!-- templates/reveal.html -->
 {% extends "base.html" %} {% block content %}
 <h1 class="text-3xl font-bold mb-4">Revelar Carta</h1>
 <p>{{ message }}</p>
 <p><strong>{{ player.name }}</strong>, escolha uma carta para revelar:</p>
-<form method="POST" class="bg-white p-4 rounded shadow-md">
-  <label for="card_index" class="block font-medium">Índice da Carta:</label>
-  <select name="card_index" id="card_index" class="border p-1 w-full mb-2">
+<form method="POST" class="bg-white p-6 rounded shadow-md max-w-md mx-auto">
+  <label for="card_index" class="block font-medium mb-1"
+    >Índice da Carta:</label
+  >
+  <select name="card_index" id="card_index" class="border p-2 w-full mb-4">
     {% for index, card in available_cards %}
     <option value="{{ index }}">Índice {{ index }} - {{ card.name }}</option>
     {% endfor %}
   </select>
-  <button type="submit" class="bg-blue-500 text-white p-2 rounded">
+  <button
+    type="submit"
+    class="bg-yellow-300 text-purple-700 px-4 py-2 rounded hover:bg-yellow-400 transition"
+  >
     Confirmar Revelação
   </button>
 </form>
